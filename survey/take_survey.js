@@ -2,6 +2,7 @@
 const pino = require('pino')();
 const Promise = require('bluebird');
 const readline = require('readline');
+const validation = require('../validation/validation');
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -9,51 +10,51 @@ const rl = readline.createInterface({
 });
 
 let record = new Object();
-let emptyError = "Response cannot be empty";
 
 exports.execute = function () {
     pino.info('survey running...');
 
-    askDadName()
-        .then(response => {
-            record.dads_name = response;
-            console.log(`%s ... OF COURSE YES THIS IS IT YES`, record.dads_name);
+    askQuestion('What is your resting heart rate currently? (per minute) \n', validation.validateRestingHeart)
+        .then(resp => {
+            record.heart_rate = resp;
 
-            return askFeelings()
-            .then(response => {
-                record.feeling = response;
-                console.log('%s ... YES THANK YOU.', response);
-                console.log('%o', record);
-            })
-            .then(function() {
-                rl.close();
-            });
-        
+            return askQuestion('How many calories have you eaten today? \n', validation.validateCalories)
+                .then(resp => {
+                    record.calories = resp;
+
+                    return askQuestion('How would you describe your day? (140 characters or less) \n', validation.validateDayDescription)
+                        .then(resp => {
+                            record.day_description = resp;
+
+                            closeSurvey();
+                        });
+                });
         });
 };
 
-function askDadName() {
+function askQuestion(prompt, validation) {
     return new Promise(function (resolve, reject) {
-        rl.question('TELL ME THE DAD\'S NAME SO THAT I MAY BECOME DJYNN: \n', (answer) => {
-            resolve(answer);
-        });
-    });
-}
+        rl.question(prompt, (answer) => {
+            let valid = validation(answer);
 
-function askFeelings() {
-    return new Promise(function (resolve, reject) {
-        rl.question('TELL ME NOW DO YOU FEEL: \n', (answer) => {
-            if (answer.length > 0) {
+            if (valid.pass) {
                 resolve(answer);
             } else {
-                console.log(emptyError);
-                return askFeelings()
-                    .then( answer => {
-                        resolve(answer);
+                console.log('Sorry, that answer could not be recorded: ' + valid.error + '\n     <3 Please provide a valid answer <3');
+                return askQuestion(prompt, validation)
+                    .then(answer => {
+                        resolve(answer)
                     });
             }
         });
     });
 }
 
-// make one generic question prompt function that can accept a question and custom validation
+function closeSurvey() {
+    console.log('Thank you for taking this brief survey! \n You provided the following answers:');
+    console.log('Your resting heart rate is: %s', record.heart_rate);
+    console.log('You ate %d calories today', record.calories);
+    console.log('Here is how you described your day: \n %s', record.day_description);
+    
+    rl.close();
+}
