@@ -3,13 +3,14 @@ const pino = require('pino')();
 const Promise = require('bluebird');
 const readline = require('readline');
 const validation = require('../validation/validation');
+const save = require('./save_survey');
 
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
-let record = new Object();
+const record = {};
 
 exports.execute = function () {
     pino.info('survey running...');
@@ -56,5 +57,7 @@ function closeSurvey() {
     console.log('You ate %d calories today', record.calories);
     console.log('Here is how you described your day: \n %s', record.day_description);
     
+    save.save(JSON.stringify(record));
+
     rl.close();
 }

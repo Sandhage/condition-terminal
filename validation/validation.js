@@ -1,7 +1,5 @@
-
 exports.validateRestingHeart = function (input) {
-    input = parseInt(input),
-    result = {
+    var result = {
         pass: true,
         error: 'Nothing wrong!'
     };
@@ -11,7 +9,10 @@ exports.validateRestingHeart = function (input) {
         result.error = 'No answer provided.';
     }
 
-    if (typeof input !== 'number' && input !== 'NaN') {
+    console.log('input: ' + parseInt(input).toString());
+    console.log('type: ' + typeof parseInt(input));
+    if (isNaN(input)) {
+        console.log("WOMPWOMPWOMP");
         result.pass  = false;
         result.error = 'Answer must be a number.';
     }
@@ -20,8 +21,7 @@ exports.validateRestingHeart = function (input) {
 }
 
 exports.validateCalories = function (input) {
-    input = parseInt(input),
-    result = {
+    var result = {
         pass: true,
         error: 'Nothing wrong!'
     };
@@ -31,7 +31,7 @@ exports.validateCalories = function (input) {
         result.error = 'No answer provided.';
     }
 
-    if (typeof input !== 'number') {
+    if (typeof parseInt(input) !== 'number') {
         result.pass  = false;
         result.error = 'Answer must be a number.';
     }
@@ -50,7 +50,7 @@ exports.validateDayDescription = function (input) {
         result.error = 'No answer provided.';
     }
 
-    if (input.length <= 140) {
+    if (input.length > 140) {
         result.pass  = false;
         result.error = 'Answer is longer than 140 characters.';
     }
